@@ -7,8 +7,14 @@ src/voice_agent_streaming_demo.egg-info/requires.txt
 src/voice_agent_streaming_demo.egg-info/top_level.txt
 src/voice_demo/__init__.py
 src/voice_demo/api/main.py
+src/voice_demo/app/events.py
 src/voice_demo/domain/__init__.py
 src/voice_demo/domain/errors.py
 src/voice_demo/domain/models.py
+src/voice_demo/ports/__init__.py
+src/voice_demo/ports/broker.py
+src/voice_demo/ports/llm.py
+src/voice_demo/ports/state_store.py
 tests/test_domain_models.py
+tests/test_event_models.py
 tests/test_healthz.py
