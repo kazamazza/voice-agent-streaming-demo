@@ -3,7 +3,8 @@ Voice Agent Streaming Demo
 A streaming voice-agent backend demonstrating:
 	•	Hexagonal architecture
 	•	Chain of Responsibility routing
-	•	Hybrid intent detection (keyword → semantic → LLM)
+	•	Hybrid intent detection (keyword → ML intent model → LLM)
+	•   Lightweight NLP training pipeline (dataset → model → inference)
 	•	Config-driven scoring and messaging
 	•	Redis stream + worker processing
 	•	End-to-end trace propagation
@@ -44,7 +45,8 @@ The application follows a hexagonal (clean architecture) structure:
                │        Adapters           │
                │  - Redis broker           │
                │  - LLM provider           │
-               │  - Semantic stub          │
+               │  - ML Intent Model        │
+			   │  - Optional LLM Provider  │       │
                └─────────────┬─────────────┘
                              │
                ┌─────────────▼─────────────┐
@@ -74,10 +76,11 @@ Routing uses a Chain of Responsibility pattern.
 Resolvers execute sequentially and stop on first confident match.
 
 Pipeline:
-	1.	Keyword Resolver (deterministic, fast, cheap)
-	2.	Semantic Resolver (embedding-style similarity, configurable)
-	3.	LLM Resolver (fallback, threshold-guarded)
-	4.	Clarification Resolver (agent-assist when still UNKNOWN)
+	1. Keyword Resolver (deterministic)
+	2. ML Intent Resolver (trained TF-IDF + LogisticRegression model)
+	3. LLM Resolver (fallback)
+	4. Clarification Resolver
+	5.	Clarification Resolver (agent-assist when still UNKNOWN)
 
 Transcript
    ↓
@@ -118,6 +121,49 @@ This allows:
 	•	Runtime tuning without code changes
 	•	A/B testing routing behavior
 	•	Safer production adjustments
+
+⸻
+
+Intent Model
+
+The system includes a lightweight trained intent model used by the SemanticRouteResolver.
+
+Pipeline:
+
+Synthetic Call Logs
+      ↓
+Dataset Builder (JSONL → Parquet)
+      ↓
+Intent Model Training
+      ↓
+TF-IDF Vectorizer + LogisticRegression
+      ↓
+Serialized Model (joblib)
+      ↓
+Runtime Semantic Intent Resolver
+
+Example training command:
+
+make train
+
+Example inference demo:
+
+make nlp-demo
+
+The model provides fast probabilistic intent ranking used by the routing engine.
+
+Example output:
+
+TEXT: money was taken from my card two times
+  BILLING       0.68
+  SUPPORT       0.10
+  HUMAN_AGENT   0.10
+
+Design goals:
+• Sub-millisecond inference
+• Cheap to retrain
+• Deterministic routing boost
+• No external ML dependencies
 
 ⸻
 
@@ -224,7 +270,9 @@ Why central UTC helper?
 ⸻
 
 Future Improvements
-	•	Replace semantic stub with embedding similarity (e.g. OpenAI embeddings)
+	•	Add embedding-based semantic model (OpenAI / local transformers)
+	• Upgrade intent model to transformer classifier
+	• Online learning from real transcripts
 	•	Add OpenTelemetry tracing
 	•	Add rate limiting & auth
 	•	Implement WebSocket push instead of polling
@@ -243,3 +291,6 @@ Current Status
 	•	Trace ID propagation
 	•	10 unit tests passing
 	•	Production-ready architectural foundation
+	• Trained intent model integrated
+	• Config-driven semantic provider (stub | model)
+	• Dataset + training pipeline
