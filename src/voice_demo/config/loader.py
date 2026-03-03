@@ -64,7 +64,12 @@ def load_config(path: str = "config/app.yaml") -> AppConfig:
     semantic_cfg = SemanticConfig(
         enabled=bool(semantic_raw.get("enabled", False)),
         threshold=float(semantic_raw.get("threshold", 0.78)),
+        provider=str(semantic_raw.get("provider", "stub")).lower(),  # type: ignore[arg-type]
+        model_path=semantic_raw.get("model_path"),
     )
+    if semantic_cfg.provider not in ("stub", "model", "openai"):
+        raise ValueError(f"Invalid semantic.provider: {semantic_cfg.provider}")
+
 
     # --- Taxonomy ---
     taxonomy_raw = raw.get("taxonomy", {})

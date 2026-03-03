@@ -3,7 +3,6 @@ from __future__ import annotations
 import time
 import logging
 
-from voice_demo.adapters.semantic_stub import StubSemanticIntent
 from voice_demo.container import build_container
 from voice_demo.app.use_cases.suggestion import SuggestionEngine
 from voice_demo.app.use_cases.scoring import ScoringEngine
@@ -34,7 +33,7 @@ def run_transcript_worker() -> None:
     llm = container["llm"]
     app_cfg = container["config"]
 
-    semantic = StubSemanticIntent()
+    semantic = container["semantic"]
 
     # Engines (config-driven)
     routing_engine = RoutingEngine(

@@ -1,4 +1,4 @@
-.PHONY: up down logs test lint demo data parquet
+.PHONY: up down logs test lint demo data parquet train
 
 up:
 	docker compose up --build
@@ -25,3 +25,6 @@ data:
 
 parquet:
 	python scripts/build_dataset_parquet.py
+
+train:
+	python scripts/train_intent_model.py

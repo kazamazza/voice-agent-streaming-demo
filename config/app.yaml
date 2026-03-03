@@ -26,8 +26,10 @@ scoring:
   empathy_bonus: 5
 
 semantic:
-  enabled: false
+  enabled: true
+  provider: "model"   # "model" | "stub" | "openai_embeddings"
   threshold: 0.78
+  model_path: "models/intent_model.joblib"
 
 taxonomy:
   intent_descriptions:
