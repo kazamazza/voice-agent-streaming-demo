@@ -1,4 +1,4 @@
-.PHONY: up down logs test lint demo data parquet train
+.PHONY: nlp-demo up down logs test lint demo data parquet train
 
 up:
 	docker compose up --build
@@ -28,3 +28,7 @@ parquet:
 
 train:
 	python scripts/train_intent_model.py
+
+nlp-demo:
+	python scripts/train_intent_model.py
+	python scripts/demo_intent_inference.py
