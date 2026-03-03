@@ -5,6 +5,8 @@ from datetime import datetime
 from typing import Literal
 import uuid
 
+from voice_demo.domain.constants import Route
+
 
 class BaseEvent(BaseModel):
     event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -35,6 +37,6 @@ class ScoreEvent(BaseEvent):
 
 class RouteDecisionEvent(BaseEvent):
     call_id: str
-    route: Literal["UNKNOWN", "SUPPORT", "SALES", "BILLING", "HUMAN_AGENT"]
+    route: Route
     confidence: float
     based_on_seq: int

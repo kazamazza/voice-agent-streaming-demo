@@ -7,11 +7,48 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -e ".[dev]"
-      - run: ruff check .
-      - run: pytest -q
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+
+      - name: Wait for Redis
+        run: |
+          python - <<'PY'
+          import time
+          import redis
+          r = redis.Redis.from_url("redis://localhost:6379/0", decode_responses=True)
+          for i in range(30):
+              try:
+                  if r.ping():
+                      print("Redis is ready")
+                      raise SystemExit(0)
+              except Exception:
+                  time.sleep(1)
+          raise SystemExit("Redis not ready")
+          PY
+
+      - name: Run tests
+        env:
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          pytest -q

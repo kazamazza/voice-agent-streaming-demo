@@ -3,10 +3,23 @@ routing:
   min_chunks_for_llm_fallback: 3
 
   rules:
-    BILLING: ["refund", "charge", "invoice", "billing"]
-    SUPPORT: ["bug", "error", "not working", "issue", "support"]
-    SALES: ["pricing", "quote", "buy", "purchase", "sales"]
+    BILLING: ["refund", "charge", "charged", "invoice", "billing", "payment"]
+    SUPPORT: ["bug", "error", "not working", "issue", "support", "broken"]
+    SALES: ["pricing", "quote", "buy", "purchase", "sales", "upgrade"]
 
 messages:
   clarification:
     en: "Just to clarify so I route you correctly — is this about billing, technical support, or sales?"
+  baseline_suggestion:
+    en: "I understand — can you confirm your account email and the issue you're seeing?"
+  empty_suggestion:
+    en: "Could you tell me a bit more about what you need help with?"
+  invalid_suggestion_fallback:
+    en: "Sorry — could you clarify what you need help with (billing, support, or sales)?"
+  coaching_default:
+    en: "Consider greeting the customer and confirming the issue clearly."
+
+taxonomy:
+  greeting: ["hello", "hi", "good morning", "good afternoon"]
+  empathy: ["sorry", "understand", "apologize", "i can help"]
+  billing_topic: ["refund", "charged", "invoice", "payment"]

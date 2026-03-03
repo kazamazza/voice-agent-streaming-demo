@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Optional
 import uuid
 
+from .constants import Route
 from .errors import InvalidChunk
 
-
-CallRoute = Literal["UNKNOWN", "SUPPORT", "SALES", "BILLING", "HUMAN_AGENT"]
 
 
 @dataclass(frozen=True)
@@ -85,11 +84,8 @@ class Score:
 
 @dataclass(frozen=True)
 class RouteDecision:
-    """
-    Represents a high-level routing decision (optional feature).
-    """
     call_id: str
-    route: CallRoute = "UNKNOWN"
+    route: Route = Route.UNKNOWN
     confidence: float = 0.5
     reason: str = ""
     based_on_seq: int = 0
@@ -97,14 +93,10 @@ class RouteDecision:
     schema_version: int = 1
 
     def validate(self) -> None:
-        if not self.call_id:
-            raise ValueError("call_id required")
-        if self.route not in ("UNKNOWN", "SUPPORT", "SALES", "BILLING", "HUMAN_AGENT"):
-            raise ValueError("invalid route")
-        if not (0.0 <= float(self.confidence) <= 1.0):
+        if not isinstance(self.route, Route):
+            raise ValueError("route must be a Route enum")
+        if not (0.0 <= self.confidence <= 1.0):
             raise ValueError("confidence must be between 0 and 1")
-        if not isinstance(self.based_on_seq, int) or self.based_on_seq < 0:
-            raise ValueError("based_on_seq must be non-negative int")
 
 
 @dataclass

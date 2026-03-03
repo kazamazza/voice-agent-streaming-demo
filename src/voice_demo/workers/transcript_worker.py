@@ -7,39 +7,57 @@ from voice_demo.container import build_container
 from voice_demo.app.use_cases.suggestion import SuggestionEngine
 from voice_demo.app.use_cases.scoring import ScoringEngine
 from voice_demo.app.use_cases.routing import RoutingEngine
-from voice_demo.app.config import load_routing_config
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def run_transcript_worker():
+
+def run_transcript_worker() -> None:
+    """
+    Worker entrypoint:
+      - Consumes transcript chunk events from broker stream
+      - Runs routing, suggestion, scoring
+      - Acks message only if processing succeeds
+
+    Notes:
+      - Config + LLM provider come from the container (DI)
+      - Routing runs first so it can set clarification suggestions; SuggestionEngine
+        must not overwrite clarification suggestions (guard in SuggestionEngine)
+    """
     container = build_container()
+
     broker = container["broker"]
     state = container["state_store"]
+    llm = container["llm"]
+    app_cfg = container["config"]
 
-    # Stub LLM provider for now
-    class StubLLM:
-        def classify_intent(self, transcript: str):
-            return "UNKNOWN", 0.5
+    # Engines (config-driven)
+    routing_engine = RoutingEngine(
+        state=state,
+        broker=broker,
+        llm=llm,
+        cfg=app_cfg.routing,
+    )
+    suggestion_engine = SuggestionEngine(
+        state=state,
+        broker=broker,
+        llm=llm,
+        cfg=app_cfg,  # if you only need messages, pass app_cfg.messages instead
+    )
+    scoring_engine = ScoringEngine(
+        state=state,
+        broker=broker,
+        cfg=app_cfg,  # or cfg=app_cfg.taxonomy/messages depending on your class
+    )
 
-        def generate_suggestion(self, transcript: str):
-            return "Let me check that for you.", 0.6
-
-    llm = StubLLM()
-
-    cfg = load_routing_config()
-
-    suggestion_engine = SuggestionEngine(state=state, broker=broker, llm=llm)
-    scoring_engine = ScoringEngine(state=state, broker=broker)
-    routing_engine = RoutingEngine(state=state, broker=broker, llm=llm, cfg=cfg)
-
+    # Broker wiring
     stream = "transcript_chunks"
     group = "transcript_group"
     consumer = "worker-1"
 
-    logger.info("Transcript worker started")
+    logger.info("Transcript worker started (stream=%s group=%s consumer=%s)", stream, group, consumer)
 
     while True:
         messages = broker.consume(stream, group, consumer, count=10, block_ms=2000)
@@ -47,18 +65,24 @@ def run_transcript_worker():
         for msg in messages:
             call_id = msg["call_id"]
             message_id = msg["_message_id"]
+            trace_id = msg.get("trace_id")
 
             try:
-                suggestion_engine.handle_call(call_id)
-                scoring_engine.handle_call(call_id)
-                routing_engine.handle_call(call_id)
+                # Important order:
+                # 1) routing can set clarification suggestion
+                # 2) suggestion respects clarification + avoids overwriting
+                # 3) scoring tags/coaching
+                routing_engine.handle_call(call_id, trace_id=trace_id)
+                suggestion_engine.handle_call(call_id, trace_id=trace_id)
+                scoring_engine.handle_call(call_id, trace_id=trace_id)
 
                 broker.ack(stream, group, message_id)
-                logger.info(f"Processed chunk for call_id={call_id}")
+                logger.info("Processed chunk (call_id=%s msg_id=%s)", call_id, message_id)
             except Exception:
-                logger.exception("Worker error — not acking message")
+                # Do not ack => message will be re-delivered
+                logger.exception("Worker error — not acking message (call_id=%s msg_id=%s)", call_id, message_id)
 
-        time.sleep(0.1)
+        time.sleep(0.05)
 
 
 if __name__ == "__main__":

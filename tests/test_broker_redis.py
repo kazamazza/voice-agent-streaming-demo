@@ -1,9 +1,13 @@
+import os
 import redis
+
 from voice_demo.adapters.broker_redis_streams import RedisStreamsBroker
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 
 def test_publish_and_consume():
-    r = redis.Redis.from_url("redis://localhost:6379/0", decode_responses=True)
+    r = redis.Redis.from_url(REDIS_URL, decode_responses=True)
     broker = RedisStreamsBroker(r)
 
     stream = "test_stream"
