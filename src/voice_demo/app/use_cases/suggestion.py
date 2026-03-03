@@ -55,7 +55,21 @@ class SuggestionEngine:
             confidence=float(conf),
             rationale="baseline/llm hybrid",
         )
-        suggestion.validate()
+        try:
+            suggestion.validate()
+        except Exception:
+            # Safe fallback: always valid, always helpful
+            reply = "Sorry — could you clarify what you need help with (billing, support, or sales)?"
+            conf = 0.4
+            suggestion = Suggestion(
+                call_id=call_id,
+                based_on_seq=session.last_seq,
+                suggested_reply=reply,
+                confidence=float(conf),
+                rationale="fallback: invalid suggestion",
+            )
+            # this one should always validate, but if it doesn't, let it raise
+            suggestion.validate()
         session.latest_suggestion = suggestion
         self.state.save_session(session)
 

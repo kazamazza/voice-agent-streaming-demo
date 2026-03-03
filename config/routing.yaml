@@ -1,0 +1,12 @@
+routing:
+  min_chunks_for_clarify: 2
+  min_chunks_for_llm_fallback: 3
+
+  rules:
+    BILLING: ["refund", "charge", "invoice", "billing"]
+    SUPPORT: ["bug", "error", "not working", "issue", "support"]
+    SALES: ["pricing", "quote", "buy", "purchase", "sales"]
+
+messages:
+  clarification:
+    en: "Just to clarify so I route you correctly — is this about billing, technical support, or sales?"
