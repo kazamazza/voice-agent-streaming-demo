@@ -27,8 +27,8 @@ scoring:
 
 semantic:
   enabled: true
-  provider: "model"   # "model" | "stub" | "openai_embeddings"
-  threshold: 0.78
+  provider: "model"
+  threshold: 0.65
   model_path: "models/intent_model.joblib"
 
 taxonomy:

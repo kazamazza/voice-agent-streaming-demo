@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import time
 import logging
 
@@ -69,6 +70,20 @@ def run_transcript_worker() -> None:
             call_id = msg["call_id"]
             message_id = msg["_message_id"]
             trace_id = msg.get("trace_id")
+
+            if not trace_id:
+                payload = msg.get("payload")
+
+                if isinstance(payload, dict):
+                    trace_id = payload.get("trace_id")
+
+                elif isinstance(payload, str) and payload:
+                    try:
+                        payload_obj = json.loads(payload)
+                        if isinstance(payload_obj, dict):
+                            trace_id = payload_obj.get("trace_id")
+                    except Exception:
+                        trace_id = None
 
             try:
                 routing_engine.handle_call(call_id, trace_id=trace_id)

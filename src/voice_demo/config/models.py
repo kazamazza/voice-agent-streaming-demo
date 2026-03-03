@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal
 
 SemanticProvider = Literal["stub", "model", "openai"]
 
@@ -33,8 +33,8 @@ class ScoringConfig:
 class SemanticConfig:
     enabled: bool
     threshold: float
-    provider: SemanticProvider = "stub"
-    model_path: Optional[str] = None
+    provider: str = "stub"
+    model_path: str | None = None
 
 
 @dataclass(frozen=True)
