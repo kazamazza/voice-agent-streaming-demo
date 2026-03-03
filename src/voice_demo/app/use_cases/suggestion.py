@@ -89,6 +89,7 @@ class SuggestionEngine:
             suggestion.validate()
 
         session.latest_suggestion = suggestion
+        session.latest_trace_id = trace_id
         self.state.save_session(session)
 
         evt = SuggestionEvent(

@@ -112,6 +112,7 @@ class CallSession:
     latest_suggestion: Optional[Suggestion] = None
     latest_score: Optional[Score] = None
     latest_route: Optional[RouteDecision] = None
+    latest_trace_id: Optional[str] = None
 
     def apply_chunk(self, chunk: TranscriptChunk, *, max_chunks: int = 20) -> None:
         """

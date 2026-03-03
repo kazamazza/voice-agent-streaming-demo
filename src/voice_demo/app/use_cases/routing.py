@@ -113,6 +113,7 @@ class RoutingEngine:
         decision.validate()
 
         session.latest_route = decision
+        session.latest_trace_id = trace_id
         self.state.save_session(session)
 
         # ---- 5) Emit event ----

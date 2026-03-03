@@ -23,3 +23,10 @@ taxonomy:
   greeting: ["hello", "hi", "good morning", "good afternoon"]
   empathy: ["sorry", "understand", "apologize", "i can help"]
   billing_topic: ["refund", "charged", "invoice", "payment"]
+
+
+scoring:
+  base_score: 70
+  greeting_bonus: 5
+  greeting_penalty: 10
+  empathy_bonus: 5

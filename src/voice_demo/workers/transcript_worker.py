@@ -49,7 +49,7 @@ def run_transcript_worker() -> None:
     scoring_engine = ScoringEngine(
         state=state,
         broker=broker,
-        cfg=app_cfg,  # or cfg=app_cfg.taxonomy/messages depending on your class
+        cfg=app_cfg,
     )
 
     # Broker wiring
@@ -72,9 +72,9 @@ def run_transcript_worker() -> None:
                 # 1) routing can set clarification suggestion
                 # 2) suggestion respects clarification + avoids overwriting
                 # 3) scoring tags/coaching
-                routing_engine.handle_call(call_id, trace_id=trace_id)
                 suggestion_engine.handle_call(call_id, trace_id=trace_id)
                 scoring_engine.handle_call(call_id, trace_id=trace_id)
+                routing_engine.handle_call(call_id, trace_id=trace_id)
 
                 broker.ack(stream, group, message_id)
                 logger.info("Processed chunk (call_id=%s msg_id=%s)", call_id, message_id)

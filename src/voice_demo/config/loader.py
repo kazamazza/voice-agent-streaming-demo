@@ -12,7 +12,7 @@ from .models import (
 )
 
 
-def load_config(path: str = "config/routing.yaml") -> AppConfig:
+def load_config(path: str = "config/app.yaml") -> AppConfig:
     """
     Load application config from YAML file and map into strongly-typed config objects.
 
