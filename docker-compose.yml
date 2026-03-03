@@ -1,0 +1,22 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    env_file:
+      - .env
+    command: >
+      bash -lc "
+      pip install -e .[dev] &&
+      uvicorn voice_demo.api.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
