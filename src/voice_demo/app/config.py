@@ -14,7 +14,7 @@ class RoutingConfig:
     clarification_message: str
 
 
-def load_routing_config(path: str = "config/routing.yaml") -> RoutingConfig:
+def load_routing_config(path: str = "config/app.yaml") -> RoutingConfig:
     data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
 
     routing = data["routing"]

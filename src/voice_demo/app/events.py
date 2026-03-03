@@ -2,11 +2,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Literal
-import uuid
-
 from voice_demo.domain.constants import Route
-
+import uuid
 
 class BaseEvent(BaseModel):
     event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))

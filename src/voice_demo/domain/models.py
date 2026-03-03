@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 import uuid
 
 from .constants import Route
 from .errors import InvalidChunk
-
+from .time_utils import utcnow
 
 
 @dataclass(frozen=True)
@@ -47,7 +47,7 @@ class Suggestion:
     suggested_reply: str
     rationale: str = ""
     confidence: float = 0.5
-    ts: datetime = field(default_factory=datetime.utcnow)
+    ts: datetime = field(default_factory=utcnow)
     schema_version: int = 1
 
     def validate(self) -> None:
@@ -70,7 +70,7 @@ class Score:
     score: int  # 0-100
     tags: list[str]
     coaching_note: str = ""
-    ts: datetime = field(default_factory=datetime.utcnow)
+    ts: datetime = field(default_factory=utcnow)
     schema_version: int = 1
 
     def validate(self) -> None:
@@ -89,7 +89,7 @@ class RouteDecision:
     confidence: float = 0.5
     reason: str = ""
     based_on_seq: int = 0
-    ts: datetime = field(default_factory=datetime.utcnow)
+    ts: datetime = field(default_factory=utcnow)
     schema_version: int = 1
 
     def validate(self) -> None:

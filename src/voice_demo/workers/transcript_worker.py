@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 import logging
 
+from voice_demo.adapters.semantic_stub import StubSemanticIntent
 from voice_demo.container import build_container
 from voice_demo.app.use_cases.suggestion import SuggestionEngine
 from voice_demo.app.use_cases.scoring import ScoringEngine
@@ -33,12 +34,15 @@ def run_transcript_worker() -> None:
     llm = container["llm"]
     app_cfg = container["config"]
 
+    semantic = StubSemanticIntent()
+
     # Engines (config-driven)
     routing_engine = RoutingEngine(
         state=state,
         broker=broker,
         llm=llm,
-        cfg=app_cfg.routing,
+        cfg=app_cfg,
+        semantic=semantic,
     )
     suggestion_engine = SuggestionEngine(
         state=state,
@@ -68,13 +72,9 @@ def run_transcript_worker() -> None:
             trace_id = msg.get("trace_id")
 
             try:
-                # Important order:
-                # 1) routing can set clarification suggestion
-                # 2) suggestion respects clarification + avoids overwriting
-                # 3) scoring tags/coaching
+                routing_engine.handle_call(call_id, trace_id=trace_id)
                 suggestion_engine.handle_call(call_id, trace_id=trace_id)
                 scoring_engine.handle_call(call_id, trace_id=trace_id)
-                routing_engine.handle_call(call_id, trace_id=trace_id)
 
                 broker.ack(stream, group, message_id)
                 logger.info("Processed chunk (call_id=%s msg_id=%s)", call_id, message_id)

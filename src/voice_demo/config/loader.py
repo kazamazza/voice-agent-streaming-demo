@@ -8,7 +8,7 @@ from .models import (
     AppConfig,
     RoutingConfig,
     TaxonomyConfig,
-    MessagesConfig, ScoringConfig,
+    MessagesConfig, ScoringConfig, SemanticConfig,
 )
 
 
@@ -40,15 +40,6 @@ def load_config(path: str = "config/app.yaml") -> AppConfig:
         clarification_message=raw["messages"]["clarification"]["en"],
     )
 
-    # --- Taxonomy ---
-    taxonomy_raw = raw.get("taxonomy", {})
-
-    taxonomy_cfg = TaxonomyConfig(
-        greeting=list(taxonomy_raw.get("greeting", [])),
-        empathy=list(taxonomy_raw.get("empathy", [])),
-        billing_topic=list(taxonomy_raw.get("billing_topic", [])),
-    )
-
     # --- Messages ---
     messages_raw = raw.get("messages", {})
 
@@ -69,9 +60,26 @@ def load_config(path: str = "config/app.yaml") -> AppConfig:
         base_score=int(scoring_raw.get("base_score", 70)),
     )
 
+    semantic_raw = raw.get("semantic", {})
+    semantic_cfg = SemanticConfig(
+        enabled=bool(semantic_raw.get("enabled", False)),
+        threshold=float(semantic_raw.get("threshold", 0.78)),
+    )
+
+    # --- Taxonomy ---
+    taxonomy_raw = raw.get("taxonomy", {})
+    intent_desc = taxonomy_raw.get("intent_descriptions", {}) or {}
+    taxonomy_cfg = TaxonomyConfig(
+        greeting=list(taxonomy_raw.get("greeting", [])),
+        empathy=list(taxonomy_raw.get("empathy", [])),
+        billing_topic=list(taxonomy_raw.get("billing_topic", [])),
+        intent_descriptions=dict(intent_desc),
+    )
+
     return AppConfig(
         routing=routing_cfg,
         taxonomy=taxonomy_cfg,
         messages=messages_cfg,
-        scoring=scoring_cfg
+        scoring=scoring_cfg,
+        semantic=semantic_cfg,
     )

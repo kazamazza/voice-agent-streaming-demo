@@ -3,111 +3,102 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from voice_demo.app.config import RoutingConfig
-from voice_demo.app.events import RouteDecisionEvent
-from voice_demo.domain.constants import ROUTE_VALUES, Route
+from voice_demo.config.models import AppConfig
+from voice_demo.domain.constants import Route
 from voice_demo.domain.models import RouteDecision, Suggestion
 from voice_demo.ports.broker import BrokerPort
-from voice_demo.ports.llm import LLMProviderPort
+from voice_demo.ports.semantic_intent import SemanticIntentPort
 from voice_demo.ports.state_store import StateStorePort
+from .routing_resolvers import KeywordRouteResolver, LLMRouteResolver, SemanticRouteResolver
+from .routing_types import RouteCandidate
+from ..events import RouteDecisionEvent
+from ...ports.llm import LLMProviderPort
 
 
 @dataclass
 class RoutingEngine:
     state: StateStorePort
     broker: BrokerPort
+    semantic: SemanticIntentPort
     llm: LLMProviderPort
-    cfg: RoutingConfig
+    cfg: AppConfig
     out_stream: str = "routes"
+
+    def _resolve_route(self, session) -> RouteCandidate:
+        """
+        Chain of Responsibility:
+          1) keyword (fast)
+          2) semantic (NLP-ish)
+          3) LLM fallback (slow/$$)
+        """
+        resolvers = [
+            KeywordRouteResolver(cfg=self.cfg),
+            SemanticRouteResolver(cfg=self.cfg, semantic=self.semantic),
+            LLMRouteResolver(cfg=self.cfg, llm=self.llm),
+        ]
+
+        for r in resolvers:
+            cand = r.resolve(session)
+            if cand is not None:
+                return cand
+
+        return RouteCandidate(route=Route.UNKNOWN, confidence=0.3, reason="insufficient_evidence")
+
+    def _maybe_set_clarification(self, call_id: str, session) -> None:
+        """
+        If still UNKNOWN after N chunks, set clarification suggestion (agent-assist),
+        but avoid overwriting existing clarification for the same seq.
+        """
+        if session.last_seq < int(self.cfg.routing.min_chunks_for_clarify):
+            return
+
+        if session.latest_suggestion:
+            is_clarification = "clarification" in (session.latest_suggestion.rationale or "").lower()
+            if is_clarification and session.latest_suggestion.based_on_seq >= session.last_seq:
+                return
+
+        msg = self.cfg.messages.clarification or self.cfg.routing.clarification_message
+        if not msg:
+            msg = "Just to clarify — is this about billing, technical support, or sales?"
+
+        try:
+            s = Suggestion(
+                call_id=call_id,
+                based_on_seq=session.last_seq,
+                suggested_reply=msg,
+                confidence=0.6,
+                rationale="clarification: route unknown",
+            )
+            s.validate()
+            session.latest_suggestion = s
+        except Exception:
+            # never crash routing on suggestion issues
+            return
 
     def handle_call(self, call_id: str, *, trace_id: Optional[str] = None) -> None:
         """
-        Routing use-case (latency-first, deterministic-first):
+        Routing use-case (latency-first):
 
-          1) Deterministic keyword routing (config-driven)
-          2) Optional LLM fallback after M chunks (ambiguity resolver)
-          3) If still UNKNOWN after N chunks -> set clarification suggestion (agent-assist)
-          4) Persist session once
-          5) Publish RouteDecisionEvent
-
-        Design goals:
-          - Never crash the worker (routing is best-effort)
-          - Prefer cheap decisions first
-          - Avoid repeated clarification spam
-          - Keep route enum internally; serialize as string in events
+          1) Resolve route via CoR: keyword -> semantic -> LLM
+          2) If still UNKNOWN and enough context -> set clarification suggestion
+          3) Persist session once
+          4) Publish RouteDecisionEvent
         """
         session = self.state.get_session(call_id)
         if not session:
             return
 
-        transcript = session.transcript_text()
-        transcript_lc = transcript.lower().strip()
+        cand = self._resolve_route(session)
 
-        # ---- 1) Deterministic routing (fast + cheap) ----
-        route: Route = Route.UNKNOWN
-        conf: float = 0.3
-        reason: str = "insufficient_evidence"
+        # Clarify if still unknown
+        if cand.route == Route.UNKNOWN:
+            self._maybe_set_clarification(call_id, session)
 
-        for candidate_route_str, keywords in self.cfg.rules.items():
-            if candidate_route_str not in ROUTE_VALUES:
-                continue
-            if any(k in transcript_lc for k in keywords):
-                route = Route(candidate_route_str)
-                conf = 0.9 if route == Route.BILLING else 0.85
-                reason = f"keyword_match:{route.value.lower()}"
-                break
-
-        # ---- 2) Optional LLM fallback (only if still UNKNOWN and enough context) ----
-        if route == Route.UNKNOWN and session.last_seq >= self.cfg.min_chunks_for_llm_fallback:
-            try:
-                llm_route, llm_conf = self.llm.classify_intent(transcript)
-                llm_route_str = str(llm_route).upper().strip()
-                if llm_route_str in ROUTE_VALUES:
-                    route = Route(llm_route_str)
-                    conf = float(llm_conf)
-                    reason = "llm_fallback"
-            except Exception:
-                # LLM failures should never break routing
-                pass
-
-        # ---- 3) Clarification suggestion (only if STILL UNKNOWN and avoid spam) ----
-        if route == Route.UNKNOWN and session.last_seq >= self.cfg.min_chunks_for_clarify:
-            should_set = True
-
-            # Avoid re-setting the same clarification on every new chunk
-            if session.latest_suggestion:
-                already_clarified = (
-                    "clarification" in (session.latest_suggestion.rationale or "").lower()
-                    and session.latest_suggestion.based_on_seq >= session.last_seq
-                )
-                if already_clarified:
-                    should_set = False
-
-            if should_set:
-                # Prefer config message; fallback to same config if missing
-                msg = self.cfg.clarification_message or (
-                    "Just to clarify so I route you correctly — is this about billing, technical support, or sales?"
-                )
-                try:
-                    s = Suggestion(
-                        call_id=call_id,
-                        based_on_seq=session.last_seq,
-                        suggested_reply=msg,
-                        confidence=0.6,
-                        rationale="clarification: route unknown",
-                    )
-                    s.validate()
-                    session.latest_suggestion = s
-                except Exception:
-                    # Never let a suggestion formatting issue crash routing
-                    pass
-
-        # ---- 4) Persist route decision ----
         decision = RouteDecision(
             call_id=call_id,
-            route=route,
-            confidence=float(conf),
-            reason=reason,
+            route=cand.route,
+            confidence=float(cand.confidence),
+            reason=str(cand.reason),
             based_on_seq=session.last_seq,
         )
         decision.validate()
@@ -116,11 +107,10 @@ class RoutingEngine:
         session.latest_trace_id = trace_id
         self.state.save_session(session)
 
-        # ---- 5) Emit event ----
         evt = RouteDecisionEvent(
             call_id=call_id,
-            route=route,  # keep enum in model; json mode will serialize to string
-            confidence=float(conf),
+            route=cand.route,
+            confidence=float(cand.confidence),
             based_on_seq=session.last_seq,
             trace_id=trace_id,
         )

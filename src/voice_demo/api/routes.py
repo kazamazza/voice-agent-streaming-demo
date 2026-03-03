@@ -9,7 +9,7 @@ from voice_demo.domain.models import TranscriptChunk
 from voice_demo.ports.broker import BrokerPort
 from voice_demo.ports.state_store import StateStorePort
 from voice_demo.app.use_cases.ingest_chunk import IngestChunk
-from .deps import get_broker, get_state_store, get_request_id
+from .deps import get_broker, get_state_store
 
 import uuid
 

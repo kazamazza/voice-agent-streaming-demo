@@ -2,13 +2,6 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class TaxonomyConfig:
-    greeting: list[str]
-    empathy: list[str]
-    billing_topic: list[str]
-
-
-@dataclass(frozen=True)
 class MessagesConfig:
     clarification: str
     baseline_suggestion: str
@@ -34,8 +27,23 @@ class ScoringConfig:
 
 
 @dataclass(frozen=True)
+class SemanticConfig:
+    enabled: bool
+    threshold: float
+
+
+@dataclass(frozen=True)
+class TaxonomyConfig:
+    greeting: list[str]
+    empathy: list[str]
+    billing_topic: list[str]
+    intent_descriptions: dict[str, str]
+
+
+@dataclass(frozen=True)
 class AppConfig:
     routing: RoutingConfig
     taxonomy: TaxonomyConfig
     messages: MessagesConfig
     scoring: ScoringConfig
+    semantic: SemanticConfig

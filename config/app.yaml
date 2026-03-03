@@ -19,14 +19,19 @@ messages:
   coaching_default:
     en: "Consider greeting the customer and confirming the issue clearly."
 
-taxonomy:
-  greeting: ["hello", "hi", "good morning", "good afternoon"]
-  empathy: ["sorry", "understand", "apologize", "i can help"]
-  billing_topic: ["refund", "charged", "invoice", "payment"]
-
-
 scoring:
   base_score: 70
   greeting_bonus: 5
   greeting_penalty: 10
   empathy_bonus: 5
+
+semantic:
+  enabled: false
+  threshold: 0.78
+
+taxonomy:
+  intent_descriptions:
+    BILLING: "refunds, charges, invoices, billing, payment problems, card charged twice"
+    SUPPORT: "bugs, errors, not working, technical issue, troubleshooting"
+    SALES: "pricing, quote, buy, purchase, upgrade plan, subscription"
+    HUMAN_AGENT: "complaint, escalation, speak to a person, human agent, manager"
