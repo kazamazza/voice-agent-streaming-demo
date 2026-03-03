@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 import time
 
-from voice_demo.domain.models import Suggestion, CallSession
+from voice_demo.domain.models import Suggestion
 from voice_demo.ports.llm import LLMProviderPort
 from voice_demo.ports.state_store import StateStorePort
 from voice_demo.ports.broker import BrokerPort

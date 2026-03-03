@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Optional
 
-from fastapi import Header, Request
+from fastapi import Header
 
 from voice_demo.container import build_container
 

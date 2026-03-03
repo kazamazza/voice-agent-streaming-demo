@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from voice_demo.domain.models import TranscriptChunk
 from voice_demo.ports.broker import BrokerPort

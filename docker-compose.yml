@@ -20,3 +20,19 @@ services:
       - redis
     ports:
       - "8000:8000"
+
+
+  worker:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    env_file:
+      - .env
+    command: >
+      bash -lc "
+      pip install -e .[dev] &&
+      python -m voice_demo.workers.transcript_worker
+      "
+    depends_on:
+      - redis
