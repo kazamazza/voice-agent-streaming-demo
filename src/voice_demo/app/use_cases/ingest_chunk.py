@@ -44,4 +44,4 @@ class IngestChunk:
             trace_id=trace_id,
             event_id=chunk.event_id,
         )
-        self.broker.publish(self.stream_name, evt.model_dump())
+        self.broker.publish(self.stream_name, evt.model_dump(mode="json"))
