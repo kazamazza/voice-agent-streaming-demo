@@ -8,3 +8,8 @@ def utcnow() -> datetime:
     can mock in tests if needed.
     """
     return datetime.now(timezone.utc)
+
+
+def utcnow_iso() -> str:
+    # stable + readable for metadata
+    return utcnow().isoformat().replace("+00:00", "Z")

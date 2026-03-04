@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import joblib
@@ -10,6 +11,7 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
+from voice_demo.domain.time_utils import utcnow_iso
 
 DATA = Path("data/processed/calls.parquet")
 OUT = Path("models/intent_model.joblib")
@@ -27,7 +29,11 @@ def main() -> None:
     y = df["label"].fillna("UNKNOWN").astype(str).tolist()
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y if len(set(y)) > 1 else None
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y if len(set(y)) > 1 else None,
     )
 
     pipe: Pipeline = Pipeline(
@@ -48,6 +54,21 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(pipe, OUT)
     print(f"Wrote model -> {OUT.resolve()}")
+
+    # ---- sidecar metadata ----
+    meta = {
+        "model_name": "intent_model",
+        "version": "1.0.0",
+        "trained_at": utcnow_iso(),
+        "dataset": str(DATA),
+        "algorithm": "tfidf(1-2gram) + logistic_regression",
+        "accuracy": float(acc),
+        "labels": sorted({str(lbl).upper() for lbl in set(y)}),
+    }
+
+    meta_path = OUT.with_suffix(".meta.json")
+    meta_path.write_text(json.dumps(meta, indent=2))
+    print(f"Wrote metadata -> {meta_path.resolve()}")
 
 
 if __name__ == "__main__":

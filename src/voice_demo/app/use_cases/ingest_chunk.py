@@ -32,7 +32,6 @@ class IngestChunk:
         # update state now (so API writes are consistent)
         session.apply_chunk(chunk)
         self.state.save_session(session)
-        self.state.mark_event_processed(chunk.call_id, chunk.event_id)
 
         # publish event for downstream workers
         evt = TranscriptChunkEvent(
@@ -45,3 +44,4 @@ class IngestChunk:
             event_id=chunk.event_id,
         )
         self.broker.publish(self.stream_name, evt.model_dump(mode="json"))
+        self.state.mark_event_processed(chunk.call_id, chunk.event_id)
