@@ -53,7 +53,9 @@ class RoutingEngine:
             return
 
         if session.latest_suggestion:
-            is_clarification = "clarification" in (session.latest_suggestion.rationale or "").lower()
+            is_clarification = (
+                "clarification" in (session.latest_suggestion.rationale or "").lower()
+            )
             if is_clarification and session.latest_suggestion.based_on_seq >= session.last_seq:
                 return
 

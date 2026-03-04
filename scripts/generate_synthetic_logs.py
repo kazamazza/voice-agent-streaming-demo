@@ -85,6 +85,7 @@ FILLERS = [
     "sorry",
 ]
 
+
 def _rand_turns(t: Template) -> list[str]:
     # 2–5 turns
     n = random.randint(2, 5)
@@ -100,14 +101,19 @@ def _rand_turns(t: Template) -> list[str]:
 def main() -> None:
     random.seed(42)
 
-    n_calls = int((Path(ROOT / ".env").read_text().count("") and 0) or 500)  # harmless; overridden below
+    n_calls = int(
+        (Path(ROOT / ".env").read_text().count("") and 0) or 500
+    )  # harmless; overridden below
     # Prefer env var if you want; keep simple default otherwise:
     n_calls = int(__import__("os").getenv("SYNTH_CALLS", "800"))
 
     # Write labels.csv header
     LABELS_PATH.write_text("call_id,label\n", encoding="utf-8")
 
-    with TRANSCRIPTS_PATH.open("w", encoding="utf-8") as f_jsonl, LABELS_PATH.open("a", encoding="utf-8") as f_lbl:
+    with (
+        TRANSCRIPTS_PATH.open("w", encoding="utf-8") as f_jsonl,
+        LABELS_PATH.open("a", encoding="utf-8") as f_lbl,
+    ):
         for _ in range(n_calls):
             call_id = f"call-{uuid.uuid4().hex[:10]}"
             t = random.choice(TEMPLATES)

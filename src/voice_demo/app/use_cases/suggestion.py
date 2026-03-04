@@ -77,7 +77,9 @@ class SuggestionEngine:
             suggestion.validate()
         except Exception:
             # Safe fallback: always valid, always helpful
-            reply = "Sorry — could you clarify what you need help with (billing, support, or sales)?"
+            reply = (
+                "Sorry — could you clarify what you need help with (billing, support, or sales)?"
+            )
             conf = 0.4
             suggestion = Suggestion(
                 call_id=call_id,

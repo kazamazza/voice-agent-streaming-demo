@@ -23,7 +23,6 @@ class RedisStreamsBroker(BrokerPort):
         count: int = 1,
         block_ms: int = 1000,
     ) -> Iterable[dict]:
-
         try:
             messages = self._r.xreadgroup(
                 groupname=group,

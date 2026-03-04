@@ -15,6 +15,7 @@ class TranscriptChunk:
     """
     Represents a single incremental transcript chunk (like streaming STT output).
     """
+
     call_id: str
     seq: int
     ts: datetime
@@ -32,9 +33,13 @@ class TranscriptChunk:
             raise InvalidChunk("text must be a string")
         # keep it conservative; you can adjust later
         if len(self.text) > 2000:
-            raise InvalidChunk("text too large", details={"max_len": 2000, "got_len": len(self.text)})
+            raise InvalidChunk(
+                "text too large", details={"max_len": 2000, "got_len": len(self.text)}
+            )
         if self.schema_version != 1:
-            raise InvalidChunk("unsupported schema_version", details={"schema_version": self.schema_version})
+            raise InvalidChunk(
+                "unsupported schema_version", details={"schema_version": self.schema_version}
+            )
 
 
 @dataclass(frozen=True)
@@ -42,6 +47,7 @@ class Suggestion:
     """
     Represents a suggested next agent response, or guidance.
     """
+
     call_id: str
     based_on_seq: int
     suggested_reply: str
@@ -66,6 +72,7 @@ class Score:
     """
     Represents real-time call quality scoring output.
     """
+
     call_id: str
     score: int  # 0-100
     tags: list[str]
@@ -105,6 +112,7 @@ class CallSession:
     In-memory representation of a call session state. In production, state is typically
     stored in a fast store (Redis) and reconstructed as needed.
     """
+
     call_id: str
     last_seq: int = -1
     recent_chunks: list[TranscriptChunk] = field(default_factory=list)

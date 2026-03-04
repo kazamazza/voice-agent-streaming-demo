@@ -13,5 +13,4 @@ class IntentScore:
 
 
 class SemanticIntentPort(Protocol):
-    def rank_intents(self, transcript: str) -> list[IntentScore]:
-        ...
+    def rank_intents(self, transcript: str) -> list[IntentScore]: ...

@@ -1,4 +1,4 @@
-.PHONY: nlp-demo up down logs test lint demo data parquet train
+.PHONY: nlp-demo up down logs test lint demo data parquet train precommit
 
 up:
 	docker compose up --build
@@ -32,3 +32,7 @@ train:
 nlp-demo:
 	python scripts/train_intent_model.py
 	python scripts/demo_intent_inference.py
+
+precommit:
+	pip install -e ".[dev]"
+	pre-commit run --all-files

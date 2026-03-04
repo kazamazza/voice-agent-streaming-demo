@@ -8,7 +8,9 @@ from .models import (
     AppConfig,
     RoutingConfig,
     TaxonomyConfig,
-    MessagesConfig, ScoringConfig, SemanticConfig,
+    MessagesConfig,
+    ScoringConfig,
+    SemanticConfig,
 )
 
 
@@ -48,7 +50,9 @@ def load_config(path: str = "config/app.yaml") -> AppConfig:
         baseline_suggestion=messages_raw.get("baseline_suggestion", {}).get("en", ""),
         empty_suggestion=messages_raw.get("empty_suggestion", {}).get("en", ""),
         coaching_default=messages_raw.get("coaching_default", {}).get("en", ""),
-        invalid_suggestion_fallback=messages_raw.get("invalid_suggestion_fallback", {}).get("en", ""),
+        invalid_suggestion_fallback=messages_raw.get("invalid_suggestion_fallback", {}).get(
+            "en", ""
+        ),
     )
 
     # --- Scoring ---
@@ -76,8 +80,9 @@ def load_config(path: str = "config/app.yaml") -> AppConfig:
 
     # Fail fast for model wiring
     if semantic_cfg.enabled and semantic_cfg.provider == "model" and not semantic_cfg.model_path:
-        raise ValueError("semantic.model_path is required when semantic.enabled=true and provider='model'")
-
+        raise ValueError(
+            "semantic.model_path is required when semantic.enabled=true and provider='model'"
+        )
 
     # --- Taxonomy ---
     taxonomy_raw = raw.get("taxonomy", {})

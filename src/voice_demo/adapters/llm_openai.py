@@ -48,7 +48,7 @@ class OpenAILLMProvider(LLMProviderPort):
     def classify_intent(self, transcript: str) -> Tuple[str, float]:
         prompt = (
             "Classify the customer's intent into exactly one of: SUPPORT, SALES, BILLING, HUMAN_AGENT, UNKNOWN.\n"
-            "Return ONLY a JSON object like: {\"intent\": \"BILLING\", \"confidence\": 0.0}\n"
+            'Return ONLY a JSON object like: {"intent": "BILLING", "confidence": 0.0}\n'
             f"Transcript:\n{transcript}\n"
         )
 
@@ -70,7 +70,7 @@ class OpenAILLMProvider(LLMProviderPort):
         prompt = (
             "You are an agent-assist system helping a phone support agent.\n"
             "Write ONE short helpful next sentence the agent could say.\n"
-            "Return ONLY JSON: {\"suggestion\": \"...\", \"confidence\": 0.0}\n"
+            'Return ONLY JSON: {"suggestion": "...", "confidence": 0.0}\n'
             f"Transcript:\n{transcript}\n"
         )
 

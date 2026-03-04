@@ -12,5 +12,5 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # LLM wiring (for later milestones)
-    llm_provider: str = "stub"   # "stub" | "openai"
+    llm_provider: str = "stub"  # "stub" | "openai"
     openai_api_key: str = ""

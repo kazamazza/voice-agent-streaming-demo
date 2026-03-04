@@ -81,10 +81,12 @@ def serialize_session(session: CallSession) -> dict[str, Any]:
         "last_seq": session.last_seq,
         "rolling_summary": session.rolling_summary,
         "recent_chunks": [_chunk_to_dict(c) for c in session.recent_chunks],
-        "latest_suggestion": _suggestion_to_dict(session.latest_suggestion) if session.latest_suggestion else None,
+        "latest_suggestion": _suggestion_to_dict(session.latest_suggestion)
+        if session.latest_suggestion
+        else None,
         "latest_score": _score_to_dict(session.latest_score) if session.latest_score else None,
         "latest_route": _route_to_dict(session.latest_route) if session.latest_route else None,
-        "latest_trace_id": session.latest_trace_id
+        "latest_trace_id": session.latest_trace_id,
     }
 
 

@@ -10,6 +10,7 @@ class DomainError(Exception):
     Base class for domain-level errors. These should be mapped to HTTP or worker-level
     handling at the edges (API/Workers), not inside the domain.
     """
+
     code: str
     message: str
     details: Optional[dict[str, Any]] = None
@@ -19,7 +20,9 @@ class DomainError(Exception):
 
 
 class InvalidChunk(DomainError):
-    def __init__(self, message: str = "Invalid transcript chunk", *, details: Optional[dict[str, Any]] = None):
+    def __init__(
+        self, message: str = "Invalid transcript chunk", *, details: Optional[dict[str, Any]] = None
+    ):
         super().__init__("INVALID_CHUNK", message, details)
 
 

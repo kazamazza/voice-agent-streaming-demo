@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from voice_demo.api.main import app
 
+
 def test_healthz():
     c = TestClient(app)
     r = c.get("/healthz")

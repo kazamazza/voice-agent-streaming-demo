@@ -14,6 +14,7 @@ def _contains_any(text: str, phrases: list[str]) -> bool:
     text = text.lower()
     return any(p.lower() in text for p in phrases if p)
 
+
 @dataclass
 class ScoringEngine:
     state: StateStorePort

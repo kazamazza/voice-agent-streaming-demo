@@ -13,8 +13,7 @@ from ...ports.llm import LLMProviderPort
 
 
 class RouteResolver(Protocol):
-    def resolve(self, session: CallSession) -> Optional[RouteCandidate]:
-        ...
+    def resolve(self, session: CallSession) -> Optional[RouteCandidate]: ...
 
 
 @dataclass
@@ -65,7 +64,9 @@ class SemanticRouteResolver(RouteResolver):
         if float(best.score) < float(self.cfg.semantic.threshold):
             return None
 
-        return RouteCandidate(route=best.intent, confidence=float(best.score), reason="semantic_intent")
+        return RouteCandidate(
+            route=best.intent, confidence=float(best.score), reason="semantic_intent"
+        )
 
 
 @dataclass
@@ -90,4 +91,6 @@ class LLMRouteResolver(RouteResolver):
         if llm_route_str not in ROUTE_VALUES:
             return None
 
-        return RouteCandidate(route=Route(llm_route_str), confidence=float(llm_conf), reason="llm_fallback")
+        return RouteCandidate(
+            route=Route(llm_route_str), confidence=float(llm_conf), reason="llm_fallback"
+        )

@@ -66,7 +66,6 @@ def test_keyword_routing_short_circuits(app_config):
     assert "keyword_match" in session.latest_route.reason
 
 
-
 def test_llm_not_called_below_threshold(app_config):
     session = build_session("something unclear", last_seq=0)
 

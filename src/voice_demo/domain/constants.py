@@ -12,4 +12,3 @@ class Route(StrEnum):
 
 
 ROUTE_VALUES: set[str] = {r.value for r in Route}
-

@@ -16,13 +16,13 @@ import uuid
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
 class IngestChunkBody(BaseModel):
     seq: int
     text: str
     ts: Optional[datetime] = None
     event_id: Optional[str] = None
     source: str = "stt"
-
 
 
 @router.post("/calls/{call_id}/chunks", status_code=202)
@@ -50,9 +50,7 @@ def post_chunk(
         object.__setattr__(chunk, "event_id", body.event_id)
 
     # ---- Structured log (API layer) ----
-    logger.info(
-        f"[trace={trace_id}] received_chunk call={call_id} seq={body.seq}"
-    )
+    logger.info(f"[trace={trace_id}] received_chunk call={call_id} seq={body.seq}")
 
     # ---- Use case execution ----
     uc = IngestChunk(broker=broker, state=state)
@@ -89,19 +87,7 @@ def get_agent_view(
         "trace_id": session.latest_trace_id,
         "last_seq": session.last_seq,
         "transcript": session.transcript_text(),
-        "suggestion": (
-            session.latest_suggestion.__dict__
-            if session.latest_suggestion
-            else None
-        ),
-        "score": (
-            session.latest_score.__dict__
-            if session.latest_score
-            else None
-        ),
-        "route": (
-            session.latest_route.__dict__
-            if session.latest_route
-            else None
-        ),
+        "suggestion": (session.latest_suggestion.__dict__ if session.latest_suggestion else None),
+        "score": (session.latest_score.__dict__ if session.latest_score else None),
+        "route": (session.latest_route.__dict__ if session.latest_route else None),
     }

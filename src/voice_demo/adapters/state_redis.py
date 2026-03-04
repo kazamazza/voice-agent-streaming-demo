@@ -5,10 +5,12 @@ import json
 import redis
 from typing import Optional
 
-from voice_demo.adapters.serializers.session_serializer import deserialize_session, serialize_session
+from voice_demo.adapters.serializers.session_serializer import (
+    deserialize_session,
+    serialize_session,
+)
 from voice_demo.ports.state_store import StateStorePort
 from voice_demo.domain.models import CallSession
-
 
 
 class RedisStateStore(StateStorePort):

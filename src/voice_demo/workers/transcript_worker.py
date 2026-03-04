@@ -14,7 +14,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-
 def run_transcript_worker() -> None:
     """
     Worker entrypoint:
@@ -61,7 +60,9 @@ def run_transcript_worker() -> None:
     group = "transcript_group"
     consumer = "worker-1"
 
-    logger.info("Transcript worker started (stream=%s group=%s consumer=%s)", stream, group, consumer)
+    logger.info(
+        "Transcript worker started (stream=%s group=%s consumer=%s)", stream, group, consumer
+    )
 
     while True:
         messages = broker.consume(stream, group, consumer, count=10, block_ms=2000)
@@ -94,7 +95,9 @@ def run_transcript_worker() -> None:
                 logger.info("Processed chunk (call_id=%s msg_id=%s)", call_id, message_id)
             except Exception:
                 # Do not ack => message will be re-delivered
-                logger.exception("Worker error — not acking message (call_id=%s msg_id=%s)", call_id, message_id)
+                logger.exception(
+                    "Worker error — not acking message (call_id=%s msg_id=%s)", call_id, message_id
+                )
 
         time.sleep(0.05)
 

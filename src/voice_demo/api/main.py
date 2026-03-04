@@ -9,6 +9,7 @@ app = FastAPI(title="Voice Agent Streaming Demo", version="0.1.0")
 app.add_exception_handler(DomainError, domain_error_to_response)
 app.include_router(router)
 
+
 @app.get("/healthz")
 def healthz() -> dict:
     return {"ok": True}
